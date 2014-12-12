@@ -1,0 +1,211 @@
+{
+  "description": null,
+  "media_type": "Pet",
+  "actions": [
+    {
+      "description": "Returns all pets from the system that the user has access to",
+      "name": "findPets",
+      "urls": [
+        {
+          "verb": "GET",
+          "path": "/pets",
+          "version": "1.0.0"
+        }
+      ],
+      "params": {
+        "options": {
+          "reference": "Pet"
+        },
+        "type": {
+          "name": "Struct",
+          "attributes": {
+            "tags": {
+              "description": "tags to filter by",
+              "type": {
+                "name": "CSV",
+                "options": {
+                },
+                "member_attribute": {
+                  "type": {
+                    "name": "String"
+                  }
+                }
+              }
+            },
+            "limit": {
+              "description": "maximum number of results to return",
+              "type": {
+                "name": "Integer"
+              }
+            }
+          }
+        },
+        "example": {
+          "tags": "uncoherent,demology,phoneidoscope",
+          "limit": 851
+        }
+      },
+      "responses": {
+        "pets": {
+          "description": "pet response",
+          "status": 200,
+          "headers": {
+          },
+          "media_type": {
+            "name": "PetCollection",
+            "member_attribute": {
+              "options": {
+                "reference": "Pet"
+              },
+              "type": {
+                "name": "Pet"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Creates a new pet in the store.  Duplicates are allowed",
+      "name": "addPet",
+      "urls": [
+        {
+          "verb": "POST",
+          "path": "/pets",
+          "version": "1.0.0"
+        }
+      ],
+      "payload": {
+        "options": {
+          "reference": "Pet"
+        },
+        "type": {
+          "name": "Struct",
+          "attributes": {
+            "pet": {
+              "description": "Pet to add to the store",
+              "options": {
+                "reference": "Pet"
+              },
+              "type": {
+                "name": "Struct",
+                "attributes": {
+                  "id": {
+                    "required": true,
+                    "type": {
+                      "name": "Integer"
+                    }
+                  },
+                  "name": {
+                    "required": true,
+                    "type": {
+                      "name": "Integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "pet": {
+            "id": 243,
+            "name": 198
+          }
+        }
+      },
+      "responses": {
+        "pet": {
+          "description": "pet response",
+          "status": 200,
+          "headers": {
+          },
+          "media_type": {
+            "name": "Pet"
+          }
+        }
+      }
+    },
+    {
+      "description": "Returns a user based on a single ID, if the user does not have access to the pet",
+      "name": "findPetById",
+      "urls": [
+        {
+          "verb": "GET",
+          "path": "/pets/:id",
+          "version": "1.0.0"
+        }
+      ],
+      "params": {
+        "options": {
+          "reference": "Pet"
+        },
+        "type": {
+          "name": "Struct",
+          "attributes": {
+            "id": {
+              "description": "ID of pet to fetch",
+              "required": true,
+              "type": {
+                "name": "Integer"
+              }
+            }
+          }
+        },
+        "example": {
+          "id": 21
+        }
+      },
+      "responses": {
+        "pet": {
+          "description": "pet response",
+          "status": 200,
+          "headers": {
+          },
+          "media_type": {
+            "name": "Pet"
+          }
+        }
+      }
+    },
+    {
+      "description": "deletes a single pet based on the ID supplied",
+      "name": "deletePet",
+      "urls": [
+        {
+          "verb": "DELETE",
+          "path": "/pets/:id",
+          "version": "1.0.0"
+        }
+      ],
+      "params": {
+        "options": {
+          "reference": "Pet"
+        },
+        "type": {
+          "name": "Struct",
+          "attributes": {
+            "id": {
+              "description": "ID of pet to delete",
+              "required": true,
+              "type": {
+                "name": "Integer"
+              }
+            }
+          }
+        },
+        "example": {
+          "id": 21
+        }
+      },
+      "responses": {
+        "deleted": {
+          "description": "pet deleted",
+          "status": 204,
+          "headers": {
+          }
+        }
+      }
+    }
+  ]
+}

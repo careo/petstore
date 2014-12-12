@@ -1,0 +1,8 @@
+{
+  "1.0.0": {
+    "Pets": {
+      "controller": "Pets",
+      "media_type": "Pet"
+    }
+  }
+}

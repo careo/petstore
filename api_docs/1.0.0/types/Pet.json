@@ -1,0 +1,31 @@
+{
+  "name": "Pet",
+  "attributes": {
+    "id": {
+      "required": true,
+      "type": {
+        "name": "Integer"
+      }
+    },
+    "name": {
+      "required": true,
+      "type": {
+        "name": "Integer"
+      }
+    },
+    "tag": {
+      "type": {
+        "name": "String"
+      }
+    }
+  },
+  "views": {
+  },
+  "identifier": null,
+  "description": null,
+  "example": {
+    "id": 875,
+    "name": 568,
+    "tag": "troglodytic"
+  }
+}
