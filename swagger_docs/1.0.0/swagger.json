@@ -39,9 +39,6 @@
             }
           }
         },
-        "produces": [
-          "application/vnd.rightswagger.pet-collection"
-        ],
         "parameters": [
           {
             "name": "tags",
@@ -62,6 +59,9 @@
             "description": "maximum number of results to return",
             "in": "query"
           }
+        ],
+        "produces": [
+          "application/vnd.rightswagger.pet-collection"
         ]
       },
       "post": {
@@ -75,12 +75,9 @@
             }
           }
         },
-        "produces": [
-          "application/vnd.rightswagger.pet"
-        ],
         "parameters": [
           {
-            "name": "pet",
+            "name": "payload",
             "required": true,
             "schema": {
               "properties": {
@@ -99,6 +96,9 @@
             "description": "Pet to add to the store",
             "in": "body"
           }
+        ],
+        "produces": [
+          "application/vnd.rightswagger.pet"
         ]
       }
     },
@@ -114,9 +114,6 @@
             }
           }
         },
-        "produces": [
-          "application/vnd.rightswagger.pet"
-        ],
         "parameters": [
           {
             "name": "id",
@@ -126,6 +123,9 @@
             "description": "ID of pet to fetch",
             "in": "path"
           }
+        ],
+        "produces": [
+          "application/vnd.rightswagger.pet"
         ]
       },
       "delete": {
@@ -136,9 +136,6 @@
             "description": "pet deleted"
           }
         },
-        "produces": [
-
-        ],
         "parameters": [
           {
             "name": "id",
@@ -148,6 +145,9 @@
             "description": "ID of pet to delete",
             "in": "path"
           }
+        ],
+        "produces": [
+
         ]
       }
     }

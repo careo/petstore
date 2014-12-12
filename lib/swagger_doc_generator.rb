@@ -1,4 +1,5 @@
 module Praxis
+
   class SwaggerDocGenerator
 
     class << self
@@ -8,7 +9,6 @@ module Praxis
     @inspected_types = Set.new
     API_DOCS_DIRNAME = 'swagger_docs'
 
-    EXCLUDED_TYPES_FROM_TOP_LEVEL = Set.new( [Attributor::Boolean, Attributor::CSV, Attributor::DateTime, Attributor::Float, Attributor::Hash, Attributor::Ids, Attributor::Integer, Attributor::Object,  Attributor::String ] ).freeze
 
     def self.inspect_attributes(the_type)
       reachable = Set.new
@@ -105,38 +105,32 @@ module Praxis
         types_for[r.version] ||= Set.new
         types_for[r.version] += r.reachable_types
       end
+      resources_for = Hash.new
+      @resources.each do |r|
+        resources_for[r.version] ||= Set.new
+        resources_for[r.version] << r
+      end
 
-      types_for.each do |version, types|
-        preface = swagger_preface(version)
-        resources = @resources.select { |r| r.version == version }
+      resources_for.keys.each do |version|
+        puts "Generating for version: #{version}"
 
-
-        paths = {}
-        resources.each do |resource|
-          resource.controller_config.actions.each do |name, action_config|
-
-            action_config.routes.each do |route|
-              data = action_stuff(action_config, route)
-
-              path = route.path.to_templates.first
-              verb = route.verb.downcase
-              paths[path] ||= {}
-              paths[path][verb] = data
-            end
-          end
-        end
-
-        definitions = {}
-        types.each do |type|
-          next if EXCLUDED_TYPES_FROM_TOP_LEVEL.include?(type)
-          name = type.name
+        
+        
+        preface = Swagger::Preface.new(version: version).generate
+        paths = Swagger::Paths.new(resources: resources_for[version]).generate
+        definitions = Swagger::Definitions.new(types: types_for[version]).generate
+        ### TODO: other possible top level reusable keys
+        # parameters
+        # responses
+        # securityDefinitions
+        # security
+        # tags
+        #    ^^^-- Maybe trait names could be mapped to tags and use traits in actions?...
+        # externalDocs
 
 
-          definitions[name] = type_stuff(type)
-        end
 
         doc = preface
-
         doc[:paths] = paths
         doc[:definitions] = definitions
 
@@ -156,153 +150,6 @@ module Praxis
       #save_doc
     end
 
-    def action_stuff(action_config, route)
-
-      data =  {
-        operationId: action_config.name,
-        description: action_config.description,
-        responses: {}
-      }
-
-      produces = []
-      responses = {}
-
-      action_config.responses.each do |name, response|
-        if response.media_type
-          produces << response.media_type.identifier
-        end
-
-        if responses.key? response.status.to_s
-          warn "already have response for status: #{response.status} for #{action.name}"
-        end
-        responses[response.status.to_s] = response_stuff(response)
-      end
-
-      parameters = []
-      if action_config.params
-        action_config.params.attributes.each do |name, param|
-          parameter = {
-            name: name.to_s,
-            required: param.options.fetch(:required, false)
-          }
-
-          parameter.merge!(swagger_type_for(param.type))
-
-          if (desc = param.options[:description])
-            parameter[:description] = desc
-          end
-
-          parameter[:in] = if route.path.named_captures.key?(name.to_s)
-            'path'
-          else
-            'query'
-          end
-
-          parameters << parameter
-        end
-      end
-
-      if action_config.payload
-        action_config.payload.attributes.each do |name, param|
-          parameter = {
-            name: name.to_s,
-            required: param.options.fetch(:required, false)
-          }
-
-          parameter.merge!(swagger_type_for(param.type))
-
-          if (desc = param.options[:description])
-            parameter[:description] = desc
-          end
-
-          parameter[:in] = 'body' # TODO: form? that includes multi-part...
-
-          parameters << parameter
-        end
-      end
-
-      data[:produces] = produces.uniq.compact
-      data[:responses] = responses
-
-      if parameters.any?
-        data[:parameters] = parameters
-      end
-
-      data
-    end
-
-    def swagger_type_for(attribute)
-      if attribute.kind_of? Attributor::Attribute
-        type = attribute.type
-      else
-        type = attribute
-      end
-
-      if type == Attributor::Integer
-        return {type: 'integer', format: 'int32'}
-      elsif type == Attributor::String
-        return {type: 'string'}
-      elsif type.ancestors.include?(Attributor::Collection)
-        val = {type: 'array', items: swagger_type_for(type.member_attribute.type)}
-        if type.ancestors.include?(Attributor::CSV)
-          val[:collectionFormat] = 'csv'
-        end
-        return val
-      elsif type.attributes.any?
-        return {schema: type_stuff(type) } 
-      else
-        binding.pry
-        raise "unknown type: #{type.inspect}"
-      end
-    end
-
-
-
-    def response_stuff(response)
-
-      val = {}
-      if (desc = response.description)
-        val[:description] = desc
-      end
-
-      if (mt = response.media_type)
-        val[:schema] = {'$ref' => "#/definitions/#{mt.name}"}
-      end
-
-      headers = {} #TODO
-
-
-      val
-
-    end
-
-
-    def type_stuff(type)
-      if type.ancestors.include?(Praxis::MediaTypeCollection)
-        return {
-          type: 'array',
-          items: {
-            '$ref' => "#/definitions/#{type.member_attribute.type.name}"
-          }
-        }
-      else
-
-        required = type.attributes.each_with_object([]) do |(name, attribute), array|
-          array << name if attribute.options[:required]
-        end
-
-        properties = {}
-        type.attributes.each do |name, attribute|
-          properties[name] = swagger_type_for(attribute)
-        end
-
-        val = {properties: properties}
-        if required.any?
-          val[:required] = required
-        end
-        val
-      end
-    end
 
     def load_resources
       Praxis::Application.instance.resource_definitions.map do |resource|
@@ -322,31 +169,7 @@ module Praxis
       end
     end
 
-    def swagger_preface(version)
-      {
-        swagger: '2.0',
-        info: {
-          version: version,
-          title: 'RightSwagger Petstore',
-          description: 'A sample API that uses a petstore as an example to demonstrate features in the swagger-2.0 specification',
-          termsOfService: 'http://example.com/terms/',
-          contact: {
-            name: 'RightSwagger API team',
-            email: 'foo@example.com',
-            url: 'http://swagger.io'
-          },
-          license: {
-            name: 'MIT',
-            url: 'http://opensource.org/licenses/MIT'
-          },
-        },
-        host: 'localhost:9292',
-        basePath: '/',
-        schemes: ['http'],
-        consumes: ['application/json'],
-        produces: ['application/json'],
-      }
-    end
+
 
     def write_resources(resources)
       resources.each do |r|
@@ -377,7 +200,7 @@ module Praxis
       versioned_types.each do |version, types|
         dirname = File.join(@doc_root_dir, version, "types")
         FileUtils.mkdir_p dirname unless File.exists? dirname
-        reportable_types = types - EXCLUDED_TYPES_FROM_TOP_LEVEL
+        reportable_types = types - Swagger::Type::EXCLUDED_TYPES_FROM_TOP_LEVEL
         reportable_types.each do |type|
           filename = File.join(dirname, "#{type.name}.json")
           #puts "Dumping #{type.name} to #{filename}"
@@ -441,7 +264,7 @@ module Praxis
 
       versioned_types.each do |version, types|
         # Discard any mediatypes that we've already seen and processed as controller related
-        reportable_types = types - media_types_seen_from_controllers - EXCLUDED_TYPES_FROM_TOP_LEVEL
+        reportable_types = types - media_types_seen_from_controllers - Swagger::Type::EXCLUDED_TYPES_FROM_TOP_LEVEL
         #TODO: think about these special cases, is it needed?
         reportable_types.reject!{|type| type < Praxis::Links || type < Praxis::MediaTypeCollection }
 

@@ -8,6 +8,9 @@ Praxis::ApiDefinition.define do
   response_template :pet do
     status 200
     media_type Pet
+    #header 'X-Foo'
+    #header 'X-Bar' => 'value'
+    #header 'X-Thing' => /thing/
     description 'pet response'
   end
 

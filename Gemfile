@@ -1,7 +1,7 @@
 source "https://rubygems.org"
 
 #gem 'praxis', github: 'rightscale/praxis'
-gem 'praxis', path: '../../praxis'
+gem 'praxis', path: '../../rightscale/praxis'
 
 gem 'attributor', github: 'rightscale/attributor'
 gem 'praxis-blueprints', github: 'rightscale/praxis-blueprints'

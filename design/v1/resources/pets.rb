@@ -6,11 +6,9 @@ class Pets
 
   media_type Pet
 
-
   routing do
     prefix '/pets'
   end
-
 
   action :findPets do
     description 'Returns all pets from the system that the user has access to'
@@ -37,11 +35,9 @@ class Pets
       post ''
     end
 
-    payload do
-      attribute :pet, description: 'Pet to add to the store', reference: Pet, required: true do
-        attribute :id, required: false
-        attribute :name, required: true
-      end
+    payload description: 'Pet to add to the store', required: true  do
+      attribute :id, required: false
+      attribute :name, required: true      
     end
 
     response :pet
