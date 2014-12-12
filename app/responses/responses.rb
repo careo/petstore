@@ -12,5 +12,7 @@ module Responses
     end
 
   end
+  class Deleted < Praxis::Responses::NoContent
+  end
 
 end

@@ -28,7 +28,7 @@ module Controllers
 
     def deletePet(id:)
       puts "Deleting Pet with id: #{id}"
-      return Praxis::Responses::Deleted.new
+      return Responses::Deleted.new
     end
   end
 
